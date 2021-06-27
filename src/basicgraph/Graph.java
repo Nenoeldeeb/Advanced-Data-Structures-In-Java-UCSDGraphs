@@ -1,12 +1,6 @@
 package basicgraph;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 import util.GraphLoader;
 
@@ -113,7 +107,7 @@ public abstract class Graph {
 	
 	
 
-	/** 
+	/*
 	 * The degree sequence of a graph is a sorted (organized in numerical order 
 	 * from largest to smallest, possibly with repetitions) list of the degrees 
 	 * of the vertices in the graph.
@@ -121,8 +115,12 @@ public abstract class Graph {
 	 * @return The degree sequence of this graph.
 	 */
 	public List<Integer> degreeSequence() {
-		// XXX: Implement in part 1 of week 2
-		return null;
+		List<Integer> answer = new LinkedList<> ();
+		for(int i=0;i<numVertices;i++){
+			answer.add (getNeighbors (i).size ()+ getInNeighbors (i).size ());
+		}
+		answer.sort (Collections.reverseOrder ());
+		return answer;
 	}
 	
 	/**
@@ -161,7 +159,7 @@ public abstract class Graph {
 	public void initializeLabels() {
 		vertexLabels = new HashMap<Integer,String>();
 	}	
-	/**
+	/*
 	 * Test whether some vertex in the graph is labeled 
 	 * with a given index.
 	 * @param The index being checked
@@ -172,7 +170,7 @@ public abstract class Graph {
 		return v < getNumVertices();
 	}
 	
-	/**
+	/*
 	 * Test whether some vertex in the graph is labeled 
 	 * with a given String label
 	 * @param The String label being checked
@@ -183,7 +181,7 @@ public abstract class Graph {
 		return vertexLabels.containsValue(s);
 	}
 	
-	/**
+	/*
 	 * Add label to an unlabeled vertex in the graph.
 	 * @param The index of the vertex to be labeled.
 	 * @param The label to be assigned to this vertex.
@@ -198,7 +196,7 @@ public abstract class Graph {
 		}
 	}
 	
-	/**
+	/*
 	 * Report label of vertex with given index
 	 * @param The integer index of the vertex
 	 * @return The String label of this vertex 
@@ -210,7 +208,7 @@ public abstract class Graph {
 		else return null;
 	}
 
-	/**
+	/*
 	 * Report index of vertex with given label.
 	 * (Assume distinct labels for vertices.)
 	 * @param The String label of the vertex
