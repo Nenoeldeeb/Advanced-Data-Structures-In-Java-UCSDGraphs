@@ -91,7 +91,7 @@ public class GraphAdjMatrix extends Graph {
 		return inNeighbors;
 	}
 	
-	/*
+	/**
 	 * Implement the abstract method for finding all 
 	 * vertices reachable by two hops from v.
 	 * Use matrix multiplication to record length 2 paths.

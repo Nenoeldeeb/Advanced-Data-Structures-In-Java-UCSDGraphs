@@ -10,7 +10,7 @@ public class GeographicPoint extends Double {
 		super(latitude, longitude);
 	}
 	
-	/**
+	/*
 	 * Calculates the geographic distance in km between this point and 
 	 * the other point. 
 	 * @param other

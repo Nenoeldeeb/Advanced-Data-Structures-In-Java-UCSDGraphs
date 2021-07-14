@@ -1,47 +1,42 @@
-/**
- * @author UCSD MOOC development team and YOU
- * 
- * A class which reprsents a graph of geographic locations
- * Nodes in the graph are intersections between 
- *
- */
 package roadgraph;
 
-
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
 
 import geography.GeographicPoint;
 import util.GraphLoader;
 
+import java.util.*;
+import java.util.function.Consumer;
+
 /**
  * @author UCSD MOOC development team and YOU
  * 
- * A class which represents a graph of geographic locations
+ * A class, which represents a graph of geographic locations
  * Nodes in the graph are intersections between 
  *
  */
 public class MapGraph {
-	//TODO: Add your member variables here in WEEK 3
-	
-	
-	/** 
-	 * Create a new empty MapGraph 
+	/**A list of edges (streets) in this graph.*/
+	private final List<GraphEdge> edges;
+	/**A map of graph vertices and there locations, which the keys are the location, and the value is the node itself.*/
+	private final Map<GeographicPoint,GraphNode> vertices;
+
+
+	/**
+	 * Create a new empty MapGraph
 	 */
-	public MapGraph()
+	public MapGraph ()
 	{
-		// TODO: Implement in this constructor in WEEK 3
+		vertices = new HashMap<> ();
+		edges = new ArrayList<> ();
 	}
 	
 	/**
-	 * Get the number of vertices (road intersections) in the graph
-	 * @return The number of vertices in the graph.
+	 * Get the amount vertices (road intersections) in the graph
+	 * @return The amount vertices in the graph.
 	 */
 	public int getNumVertices()
 	{
-		//TODO: Implement this method in WEEK 3
-		return 0;
+		return vertices.size ();
 	}
 	
 	/**
@@ -50,18 +45,16 @@ public class MapGraph {
 	 */
 	public Set<GeographicPoint> getVertices()
 	{
-		//TODO: Implement this method in WEEK 3
-		return null;
+		return new HashSet<> (vertices.keySet ());
 	}
 	
 	/**
 	 * Get the number of road segments in the graph
-	 * @return The number of edges in the graph.
+	 * @return The amount edges in the graph.
 	 */
 	public int getNumEdges()
 	{
-		//TODO: Implement this method in WEEK 3
-		return 0;
+		return edges.size ();
 	}
 
 	
@@ -70,13 +63,12 @@ public class MapGraph {
 	 * If the location is already in the graph or null, this method does 
 	 * not change the graph.
 	 * @param location  The location of the intersection
-	 * @return true if a node was added, false if it was not (the node
-	 * was already in the graph, or the parameter is null).
 	 */
-	public boolean addVertex(GeographicPoint location)
+	public void addVertex(GeographicPoint location)
 	{
-		// TODO: Implement this method in WEEK 3
-		return false;
+		if (!vertices.containsKey (location) && location != null) {
+			vertices.put (location,new GraphNode (location));
+		}
 	}
 	
 	/**
@@ -93,11 +85,42 @@ public class MapGraph {
 	 */
 	public void addEdge(GeographicPoint from, GeographicPoint to, String roadName,
 			String roadType, double length) throws IllegalArgumentException {
-
-		//TODO: Implement this method in WEEK 3
+		if(roadName == null || roadType == null || from == null || to == null)return;
+		GraphEdge edge = new GraphEdge (from,to,roadName,roadType,length);
+		for (GraphEdge e : edges) {
+			if(e.equals (edge))return;
+		}
+		edges.add (edge);
+		addNeighbor (from,to);
 		
 	}
-	
+
+	/*
+	This method adds a neighbor to the node  when they are connected with an edge.
+	 */
+	private void addNeighbor (GeographicPoint node, GeographicPoint neighborNode) {
+		if (vertices.containsKey (node)) {
+			GraphNode main = vertices.get (node);
+			if (vertices.containsKey (neighborNode)) {
+				GraphNode neighbor = vertices.get (neighborNode);
+				if(!main.isNeighbor (neighborNode))main.addNeighbor (neighbor);
+			}
+			else{
+				addVertex (neighborNode);
+				GraphNode neighbor = vertices.get (neighborNode);
+				main.addNeighbor (neighbor);
+			}
+		}
+		else{
+			addVertex (node);
+			addVertex (neighborNode);
+			GraphNode main = vertices.get (node);
+			GraphNode neighbor = vertices.get (neighborNode);
+			main.addNeighbor (neighbor);
+		}
+	}
+
+
 
 	/** Find the path from start to goal using breadth first search
 	 * 
@@ -123,12 +146,61 @@ public class MapGraph {
 	public List<GeographicPoint> bfs(GeographicPoint start, 
 			 					     GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
 	{
-		// TODO: Implement this method in WEEK 3
+		if(start == null || goal == null)return null;
+		Set<GeographicPoint> visited = new HashSet<> ();
+		Queue<GeographicPoint> toExplore = new LinkedList<> ();
+		Map<GeographicPoint,GeographicPoint> parentMap = new HashMap<> ();
+		toExplore.add (start);
+
+		boolean found = bfsSearch (goal,toExplore,visited,parentMap,nodeSearched);
+
 		
 		// Hook for visualization.  See writeup.
 		//nodeSearched.accept(next.getLocation());
 
-		return null;
+		return constructPath (start,goal,parentMap,found);
+	}
+
+	/*
+	This method performs a breadth first search algorithm.
+	It'd separated from bfs method to make the code more clean.
+	 */
+	private boolean bfsSearch (GeographicPoint goal, Queue<GeographicPoint> toExplore,
+	                           Set<GeographicPoint> visited,Map<GeographicPoint, GeographicPoint> parentMap,
+	                           Consumer<GeographicPoint> nodeSearched) {
+		while (!toExplore.isEmpty ()) {
+			GeographicPoint curr = toExplore.remove ();
+			nodeSearched.accept (curr);
+			if(curr.equals (goal))return true;
+			List<GraphNode> neighbors = vertices.get (curr).getNeighbors ();
+			ListIterator<GraphNode> it = neighbors.listIterator (neighbors.size ());
+			while (it.hasPrevious ()) {
+				GeographicPoint next = it.previous ().getLocation ();
+				if (!visited.contains (next)) {
+					visited.add (next);
+					parentMap.put (next,curr);
+					toExplore.add (next);
+				}
+			}
+		}
+		return false;
+	}
+
+	/*
+	This method create a path from the start node to the goal on the graph.
+	It'd separated from the bfs method to make code reusable and readable.
+	*/
+	private List<GeographicPoint> constructPath (GeographicPoint start, GeographicPoint goal,
+	                                       Map<GeographicPoint, GeographicPoint> parentMap,boolean found) {
+		if(!found)return null;
+		LinkedList<GeographicPoint> path = new LinkedList<> ();
+		GeographicPoint curr = goal;
+		while (!curr.equals (start)) {
+			path.addFirst (curr);
+			curr = parentMap.get (curr);
+		}
+		path.addFirst (start);
+		return path;
 	}
 	
 
@@ -202,7 +274,7 @@ public class MapGraph {
 	public static void main(String[] args)
 	{
 		System.out.print("Making a new map...");
-		MapGraph firstMap = new MapGraph();
+		MapGraph firstMap = new MapGraph ();
 		System.out.print("DONE. \nLoading the map...");
 		GraphLoader.loadRoadMap("data/testdata/simpletest.map", firstMap);
 		System.out.println("DONE.");
