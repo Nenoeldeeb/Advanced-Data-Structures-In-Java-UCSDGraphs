@@ -1,88 +1,157 @@
+/**
+ * A class to represent a node in the map
+ */
 package roadgraph;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import geography.GeographicPoint;
 
 /**
- * This class created to make adding searching or adding vertices neighbors very easy.
- * It contains. All graph node variables such as a "location" and neighbors list.
- * Also contains all public and helper methods such as isNeighbor() addNeighbor() and getLocation.
+ * @author UCSD MOOC development team
+ * 
+ * Class representing a vertex (or node) in our MapGraph
+ *
  */
-public class GraphNode {
+class GraphNode implements Comparable<GraphNode>
+{
+	/** The list of edges out of this node */
+	private HashSet<GraphEdge> edges;
+		
+	/** the latitude and longitude of this node */
+	private GeographicPoint location;
 
-	/**
-	 * The location of the vertex / street intersection.
-	 */
-	private final GeographicPoint location;
-	/**
-	 * The list of neighbors vertices of this vertex that directly connect with an edge.
-	 */
-	private final List<GraphNode> neighbors;
 
-	/**
-	 * The constructor, which takes a location. That initialize a location and neighbors list of this vertex.
+	private double currentDistance;
+
+
+	private double totalDistance;
+		
+	/** 
+	 * Create a new GraphNode at a given Geographic location
+	 * @param loc the location of this node
 	 */
-	public GraphNode (GeographicPoint location) {
-		this.location = location;
-		neighbors = new ArrayList<> ();
+	GraphNode (GeographicPoint loc)
+	{
+		location = loc;
+		edges = new HashSet<GraphEdge>();
+		currentDistance = 0.0;
+		totalDistance = 0.0;
 	}
-
+		
 	/**
-	 * A getter for vertex location.
-	 *
-	 * @return location of this node.
+	 * Add an edge that is outgoing from this node in the graph
+	 * @param edge The edge to be added
 	 */
-	public GeographicPoint getLocation () {
-		return new GeographicPoint (location.getX (), location.getY ());
+	void addEdge(GraphEdge edge)
+	{
+		edges.add(edge);
 	}
-
-	/**
-	 * A getter for the list of neighbors that adjacency to this node.
-	 *
-	 * @return A list of node that connect via an edge with this node.
+	
+	/**  
+	 * Return the neighbors of this GraphNode
+	 * @return a set containing all the neighbors of this node
 	 */
-	public List<GraphNode> getNeighbors () {
-		return new ArrayList<> (neighbors);
-	}
-
-	/**
-	 * This method checks if the given node is in neighbors list that means it is connected to this node or not.
-	 *
-	 * @param loc The location of checked node.
-	 * @return true if the checked node in the neighbors list means it is connected with this node.
-	 * Otherwise, return false.
-	 */
-	public boolean isNeighbor (GeographicPoint loc) {
-		if (loc == null) return false;
-		for (GraphNode neighbor : neighbors) {
-			GeographicPoint location = neighbor.getLocation ();
-			if (loc.getX () == location.getX () && loc.getY () == location.getY ()) return true;
+	Set<GraphNode> getNeighbors()
+	{
+		Set<GraphNode> neighbors = new HashSet<GraphNode>();
+		for (GraphEdge edge : edges) {
+			neighbors.add(edge.getOtherNode(this));
 		}
-		return false;
+		return neighbors;
 	}
-
+	
 	/**
-	 * This method add a node to a neighbors list of this node.
-	 *
-	 * @param neighbor A node to add to current node neighbors list.
+	 * Get the geographic location that this node represents
+	 * @return the geographic location of this node
 	 */
-	public void addNeighbor (GraphNode neighbor) {
-		if (neighbor == null || isNeighbor (neighbor.getLocation ())) return;
-		neighbors.add (neighbor);
+	GeographicPoint getLocation()
+	{
+		return location;
+	}
+	
+	/**
+	 * return the edges out of this node
+	 * @return a set contianing all the edges out of this node.
+	 */
+	Set<GraphEdge> getEdges()
+	{
+		return edges;
+	}
+	
+	/** Returns whether two nodes are equal.
+	 * Nodes are considered equal if their locations are the same, 
+	 * even if their street list is different.
+	 * @param o the node to compare to
+	 * @return true if these nodes are at the same location, false otherwise
+	 */
+	@Override
+	public boolean equals(Object o)
+	{
+		if (!(o instanceof GraphNode) || (o == null)) {
+			return false;
+		}
+		GraphNode node = (GraphNode)o;
+		return node.location.equals(this.location);
+	}
+	
+	/** Because we compare nodes using their location, we also 
+	 * may use their location for HashCode.
+	 * @return The HashCode for this node, which is the HashCode for the 
+	 * underlying point
+	 */
+	@Override
+	public int hashCode()
+	{
+		return location.hashCode();
+	}
+	
+	/** ToString to print out a GraphNode object
+	 *  @return the string representation of a GraphNode
+	 */
+	@Override
+	public String toString()
+	{
+		String toReturn = "[NODE at location (" + location + ")";
+		toReturn += " intersects streets: ";
+		for (GraphEdge e: edges) {
+			toReturn += e.getRoadName() + ", ";
+		}
+		toReturn += "]";
+		return toReturn;
+	}
+
+	// For debugging, output roadNames as a String.
+	public String roadNamesAsString()
+	{
+		String toReturn = "(";
+		for (GraphEdge e: edges) {
+			toReturn += e.getRoadName() + ", ";
+		}
+		toReturn += ")";
+		return toReturn;
+	}
+
+
+	public double getCurrentDistance () {
+		return currentDistance;
+	}
+
+	public void setCurrentDistance (double currentDistance) {
+		this.currentDistance = currentDistance;
+	}
+
+	public double getTotalDistance () {
+		return totalDistance;
+	}
+
+	public void setTotalDistance (double totalDistance) {
+		this.totalDistance = totalDistance;
 	}
 
 	@Override
-	public int hashCode () {
-		return location.hashCode ();
-	}
-
-	@Override
-	public boolean equals (Object o) {
-		if(!(o instanceof GraphNode) || o == null)return false;
-		if(o == this)return true;
-		GraphNode node = (GraphNode) o;
-		return this.getLocation ().equals (node.getLocation ());
+	public int compareTo (GraphNode graphNode) {
+		return Double.compare (this.getCurrentDistance (),graphNode.getCurrentDistance ());
 	}
 }

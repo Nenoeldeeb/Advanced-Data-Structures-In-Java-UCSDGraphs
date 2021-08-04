@@ -1,81 +1,148 @@
+/**
+ * 
+ */
 package roadgraph;
 
 import geography.GeographicPoint;
 
 /**
- * This class holds all graph edge data
- * such as start location , end location , name etc.
- * It makes the adding or searching edges very easy and fast.
+ * @author UCSD Intermediate Programming MOOC team
+ *
+ * A directed edge in a map graph from Node start to Node end
  */
-public class GraphEdge {
-	/**The start location of the edge (street).*/
-	private final GeographicPoint start;
-	/**The end location of the edge (street).*/
-	private final GeographicPoint end;
-	/**The street name.*/
-	private final String  name;
-	/**The street type (highway city street etc).*/
-	private final String type;
-	/**The distance between the start point, and the end point.*/
-	private final double length;
-
-	/**
-	 * The class constructor, which take and initialize all member variables.
-	 *
-	 * @param start The start location of the edge (street).
-	 * @param end The end location of the edge (street).
-	 * @param name The street name.
-	 * @param type The street type (highway city street etc).
-	 * @param length The distance between the start point, and the end point.
+class GraphEdge
+{
+	/** The name of the road */
+	private String roadName;
+	
+	/** The type of the road */
+	private String roadType;
+	
+	/** The two end points of the edge */
+	private GraphNode start;
+	private GraphNode end;
+	
+	
+	/** The length of the road segment, in km */
+	private double length;
+	
+	static final double DEFAULT_LENGTH = 0.01;
+	
+	
+	/** Create a new GraphEdge object
+	 * 
+	 * @param roadName
+	 * @param n1  The point at one end of the segment
+	 * @param n2  The point at the other end of the segment
+	 * 
 	 */
-	public GraphEdge (GeographicPoint start, GeographicPoint end, String name, String type, double length) {
-		this.start = start;
-		this.end = end;
-		this.name = name;
-		this.type = type;
+	GraphEdge (String roadName, GraphNode n1, GraphNode n2)
+	{
+		this(roadName, "", n1, n2, DEFAULT_LENGTH);
+	}
+	
+	/** 
+	 * Create a new GraphEdge object
+	 * @param roadName  The name of the road
+	 * @param roadType  The type of the road
+	 * @param n1 The point at one end of the segment
+	 * @param n2 The point at the other end of the segment
+	 */
+	GraphEdge (String roadName, String roadType, GraphNode n1, GraphNode n2)
+	{
+		this(roadName, roadType, n1, n2, DEFAULT_LENGTH);
+	}
+	
+	/** 
+	 * Create a new GraphEdge object
+	 * @param roadName  The name of the road
+	 * @param roadType  The type of the road
+	 * @param n1 The point at one end of the segment
+	 * @param n2 The point at the other end of the segment
+	 * @param length The length of the road segment
+	 */	
+	GraphEdge (String roadName, String roadType,
+	           GraphNode n1, GraphNode n2, double length)
+	{
+		this.roadName = roadName;
+		start = n1;
+		end = n2;
+		this.roadType = roadType;
 		this.length = length;
 	}
-
+	
 	/**
-	 * A getter for start location.
-	 * @return start location.
+	 * return the GraphNode for the end point
+	 * @return the GraphNode for the end point
 	 */
-	public GeographicPoint getStart () {
-		return new GeographicPoint (start.getX (),start.getY ());
+	GraphNode getEndNode() {
+	   return end;
 	}
-
+	
 	/**
-	 * A getter to end location.
-	 * @return end location.
+	 * Return the location of the start point
+	 * @return The location of the start point as a GeographicPoint
 	 */
-	public GeographicPoint getEnd () {
-		return new GeographicPoint (end.getX (),end.getY ());
+	GeographicPoint getStartPoint()
+	{
+		return start.getLocation();
 	}
-
+	
 	/**
-	 * A getter for street / edge name.
-	 * @return street / edge name.
+	 * Return the location of the end point
+	 * @return The location of the end point as a GeographicPoint
 	 */
-	public String getName () {
-		return name;
+	GeographicPoint getEndPoint()
+	{
+		return end.getLocation();
 	}
-
+	
 	/**
-	 * A getter for street type.
-	 * @return street type.
+	 * Return the length of this road segment
+	 * @return the length of the road segment
 	 */
-	public String getType () {
-		return type;
-	}
-
-	/**
-	 * A getter for street length (distance between start and end location).
-	 * @return street length.
-	 */
-	public double getLength () {
+	double getLength()
+	{
 		return length;
 	}
+	
+	/**
+	 * Get the road's name
+	 * @return the name of the road that this edge is on
+	 */
+	public String getRoadName()
+	{
+		return roadName;
+	}
 
-
+	/**
+	 * Given one of the nodes involved in this edge, get the other one
+	 * @param node The node on one side of this edge
+	 * @return the other node involved in this edge
+	 */
+	GraphNode getOtherNode(GraphNode node)
+	{
+		if (node.equals(start)) 
+			return end;
+		else if (node.equals(end))
+			return start;
+		throw new IllegalArgumentException("Looking for " +
+			"a point that is not in the edge");
+	}
+	
+	/**
+	 * Return a String representation for this edge.
+	 */
+	@Override
+	public String toString()
+	{
+		String toReturn = "[EDGE between ";
+		toReturn += "\n\t" + start.getLocation();
+		toReturn += "\n\t" + end.getLocation();
+		toReturn += "\nRoad name: " + roadName + " Road type: " + roadType +
+				" Segment length: " + String.format("%.3g", length) + "km";
+		
+		return toReturn;
+	}
 
 }
