@@ -269,7 +269,6 @@ It'd separated from the bfs method to make code reusable and readable.
 		boolean found = advancedSearch (to, toExplore,visited,parentMap,nodeSearched,(a,b)->0.0);
 		// Hook for visualization.  See writeup.
 		//nodeSearched.accept(next.getLocation());
-
 		return constructPath (from, to,parentMap,found);
 	}
 
@@ -284,8 +283,9 @@ It'd separated from the bfs method to make code reusable and readable.
 	}
 
 	private boolean advancedSearch (GraphNode goal, PriorityQueue<GraphNode> toExplore, Set<GraphNode> visited, Map<GraphNode, GraphNode> parentMap,
-	                                Consumer<GeographicPoint> nodeSearched, BiFunction<GraphNode,GraphNode,Double> bf) {
+	                                Consumer<GeographicPoint> nodeSearched, BiFunction<GraphNode, GraphNode, Double> bf) {
 		while (!toExplore.isEmpty ()) {
+
 			GraphNode curr = toExplore.remove ();
 			nodeSearched.accept (curr.getLocation ());
 			if(!visited.contains (curr)) {
@@ -353,7 +353,6 @@ It'd separated from the bfs method to make code reusable and readable.
 		boolean found = advancedSearch (to, toExplore,visited,parentMap,nodeSearched,(a,b)->a.getLocation ().distance (b.getLocation ()));
 		// Hook for visualization.  See writeup.
 		//nodeSearched.accept(next.getLocation());
-		
 		return constructPath (from,to,parentMap,found);
 	}
 
@@ -361,11 +360,22 @@ It'd separated from the bfs method to make code reusable and readable.
 	
 	public static void main(String[] args)
 	{
-		System.out.print("Making a new map...");
+		/*System.out.print("Making a new map...");
 		MapGraph theMap = new MapGraph();
 		System.out.print("DONE. \nLoading the map...");
 		GraphLoader.loadRoadMap("data/testdata/simpletest.map", theMap);
+		System.out.println("DONE.");*/
+
+		MapGraph theMap = new MapGraph();
+		System.out.print("DONE. \nLoading the map...");
+		GraphLoader.loadRoadMap("data/maps/utc.map", theMap);
 		System.out.println("DONE.");
+
+		GeographicPoint start = new GeographicPoint(32.8648772, -117.2254046);
+		GeographicPoint end = new GeographicPoint(32.8660691, -117.217393);
+
+		List<GeographicPoint> route = theMap.dijkstra(start,end);
+		List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
 		
 		// You can use this method for testing.  
 		
