@@ -25,7 +25,9 @@ class GraphEdge
 	
 	/** The length of the road segment, in km */
 	private double length;
-	
+	/**The speed limit of this edge/road.*/
+	private double speed;
+
 	static final double DEFAULT_LENGTH = 0.01;
 	
 	
@@ -69,6 +71,7 @@ class GraphEdge
 		end = n2;
 		this.roadType = roadType;
 		this.length = length;
+		this.setSpeed ();
 	}
 	
 	/**
@@ -145,4 +148,38 @@ class GraphEdge
 		return toReturn;
 	}
 
+	public double getSpeed () {
+		return speed;
+	}
+
+	public void setSpeed () {
+		switch (this.roadType) {
+			case "motorway":
+				speed=180.0;break;
+			case "motorway_link":
+				speed=120.0;break;
+			case "secondary":
+				speed=80.0;break;
+			case "unclassified":
+				speed=70.0;break;
+			case "primary":
+				speed=80.0;break;
+			case "residential":
+				speed=50.0;break;
+			case "trunk":
+				speed=80.0;break;
+			case "trunk_link":
+				speed=70.0;break;
+			case "tertiary":
+				speed=80.0;break;
+			case "living_street":
+				speed=30.0;break;
+			default:
+				speed=50.0;
+		}
+	}
+
+	public double getTime () {
+		return length/speed;
+	}
 }

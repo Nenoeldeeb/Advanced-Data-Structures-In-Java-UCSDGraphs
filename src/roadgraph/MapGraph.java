@@ -8,6 +8,7 @@
 package roadgraph;
 
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -265,8 +266,9 @@ It'd separated from the bfs method to make code reusable and readable.
 		this.setInitialDistance ();
 		from.setCurrentDistance (0.0);
 		from.setTotalDistance (0.0);
+		from.setTime (0.0);
 		toExplore.add (from);
-		boolean found = advancedSearch (to, toExplore,visited,parentMap,nodeSearched,(a,b)->0.0);
+		boolean found = advancedSearchWithDistance (to, toExplore,visited,parentMap,nodeSearched,(a, b)->0.0);
 		// Hook for visualization.  See writeup.
 		//nodeSearched.accept(next.getLocation());
 		return constructPath (from, to,parentMap,found);
@@ -279,11 +281,12 @@ It'd separated from the bfs method to make code reusable and readable.
 		for (GraphNode node : pointNodeMap.values ()) {
 			node.setCurrentDistance (Double.MAX_VALUE);
 			node.setTotalDistance (Double.MAX_VALUE);
+			node.setTime (Double.MAX_VALUE);
 		}
 	}
 
-	private boolean advancedSearch (GraphNode goal, PriorityQueue<GraphNode> toExplore, Set<GraphNode> visited, Map<GraphNode, GraphNode> parentMap,
-	                                Consumer<GeographicPoint> nodeSearched, BiFunction<GraphNode, GraphNode, Double> bf) {
+	private boolean advancedSearchWithDistance (GraphNode goal, PriorityQueue<GraphNode> toExplore, Set<GraphNode> visited, Map<GraphNode, GraphNode> parentMap,
+	                                            Consumer<GeographicPoint> nodeSearched, BiFunction<GraphNode, GraphNode, Double> bf) {
 		while (!toExplore.isEmpty ()) {
 
 			GraphNode curr = toExplore.remove ();
@@ -308,10 +311,54 @@ It'd separated from the bfs method to make code reusable and readable.
 		return false;
 	}
 
+	private class NodeTimeComparator implements Comparator<GraphNode> {
+		private NodeTimeComparator(){}
+
+		@Override
+		public int compare (GraphNode n1, GraphNode n2) {
+			return Double.compare (n1.getTime (),n2.getTime ());
+		}
+	}
+
+
+	private boolean advancedSearchWithTime (GraphNode goal, PriorityQueue<GraphNode> toExplore, Set<GraphNode> visited, Map<GraphNode, GraphNode> parentMap,
+	                                            Consumer<GeographicPoint> nodeSearched, BiFunction<GraphNode, GraphNode, Double> bf) {
+		while (!toExplore.isEmpty ()) {
+
+			GraphNode curr = toExplore.remove ();
+			nodeSearched.accept (curr.getLocation ());
+			if(!visited.contains (curr)) {
+				visited.add (curr);
+				if (curr.equals (goal)) return true;
+				Map<GraphNode,Double> times = this.getNeighborsWithTimes (curr);
+				for(GraphNode neighbor : curr.getNeighbors ()){
+					double theTime = curr.getTime () + times.get (neighbor);
+					if (theTime < neighbor.getTime ()) {
+						neighbor.setTime (theTime);
+//						theTime += bf.apply (neighbor,goal);
+//						neighbor.setTotalDistance (theTime);
+						parentMap.put (neighbor, curr);
+						toExplore.add (neighbor);
+					}
+
+				}
+			}
+		}
+		return false;
+	}
+
 	private Map<GraphNode, Double> getNeighborsWithDistances (GraphNode node) {
 		Map<GraphNode,Double> result = new HashMap<> ();
 		for (GraphEdge edge : node.getEdges ()) {
 			result.put (edge.getEndNode (),edge.getLength ());
+		}
+		return result;
+	}
+
+	private Map<GraphNode, Double> getNeighborsWithTimes (GraphNode node) {
+		Map<GraphNode,Double> result = new HashMap<> ();
+		for (GraphEdge edge : node.getEdges ()) {
+			result.put (edge.getEndNode (),edge.getTime ());
 		}
 		return result;
 	}
@@ -349,8 +396,9 @@ It'd separated from the bfs method to make code reusable and readable.
 		this.setInitialDistance ();
 		from.setCurrentDistance (0.0);
 		from.setTotalDistance (0.0);
+		from.setTime (0.0);
 		toExplore.add (from);
-		boolean found = advancedSearch (to, toExplore,visited,parentMap,nodeSearched,(a,b)->a.getLocation ().distance (b.getLocation ()));
+		boolean found = advancedSearchWithDistance (to, toExplore,visited,parentMap,nodeSearched,(a, b)->a.getLocation ().distance (b.getLocation ()));
 		// Hook for visualization.  See writeup.
 		//nodeSearched.accept(next.getLocation());
 		return constructPath (from,to,parentMap,found);

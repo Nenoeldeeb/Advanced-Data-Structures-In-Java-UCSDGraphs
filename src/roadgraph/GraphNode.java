@@ -27,6 +27,8 @@ class GraphNode implements Comparable<GraphNode>
 
 
 	private double totalDistance;
+	/**The time from this node to the next neighbor.*/
+	private double time;
 		
 	/** 
 	 * Create a new GraphNode at a given Geographic location
@@ -153,5 +155,13 @@ class GraphNode implements Comparable<GraphNode>
 	@Override
 	public int compareTo (GraphNode graphNode) {
 		return Double.compare (this.getCurrentDistance (),graphNode.getCurrentDistance ());
+	}
+
+	public double getTime () {
+		return time;
+	}
+
+	public void setTime (double time) {
+		this.time = time;
 	}
 }
